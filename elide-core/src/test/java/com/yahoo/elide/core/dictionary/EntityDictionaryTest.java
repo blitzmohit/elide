@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.dictionary;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -14,7 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.annotation.ComputedAttribute;
+import com.yahoo.elide.annotation.DefaultFilter;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
@@ -23,6 +26,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
@@ -33,9 +37,11 @@ import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
 import example.Author;
 import example.Book;
 import example.Child;
@@ -73,6 +79,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.persistence.AccessType;
 import javax.persistence.Entity;
@@ -787,7 +794,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals(ClassType.of(SuperclassBinding.class), getEntityBinding(ClassType.of(SubclassBinding.class)).entityClass);
         assertEquals(ClassType.of(SuperclassBinding.class), getEntityBinding(ClassType.of(SuperclassBinding.class)).entityClass);
         assertThrows(IllegalArgumentException.class, () ->
-            getEntityBinding(ClassType.of(SubsubclassBinding.class))
+                getEntityBinding(ClassType.of(SubsubclassBinding.class))
         );
 
         assertEquals(ClassType.of(SuperclassBinding.class), lookupIncludeClass(ClassType.of(SuperclassBinding.class)));
@@ -839,6 +846,15 @@ public class EntityDictionaryTest extends EntityDictionary {
         FilterExpressionPath fe =
                 getMethodAnnotation(ClassType.of(Book.class), "getEditor", FilterExpressionPath.class);
         assertEquals("publisher.editor", fe.value());
+    }
+
+    @Test
+    public void testAnnotationDefaultFilter() {
+        bindEntity(Book.class);
+        DefaultFilter defaultFilter =
+                getMethodAnnotation(ClassType.of(Book.class), "getPublishDate", DefaultFilter.class);
+        assertEquals(Operator.GT, defaultFilter.op());
+        assertArrayEquals(new String[]{"2010"}, defaultFilter.values());
     }
 
     @Test

@@ -8,11 +8,13 @@ package example;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.CreatePermission;
+import com.yahoo.elide.annotation.DefaultFilter;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.OperationCheck;
@@ -96,6 +98,7 @@ public class Book {
         this.publishDate = publishDate;
     }
 
+    @DefaultFilter(op = Operator.GT, values = {"2010"})
     public long getPublishDate() {
         return this.publishDate;
     }
